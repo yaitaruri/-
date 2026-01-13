@@ -118,125 +118,6 @@ bool loadGame(Player*& p) {
     return true; 
 }
 
-// --- 上帝模式 ---
-void godMode(Player* p) {
-    system("cls");
-    cout << "\n\033[1;31m========================================" << endl;
-    cout << "   [ SYSTEM OVERRIDE: GOD MODE ACTIVE ]   " << endl;
-    cout << "========================================\033[1;32m" << endl;
-    cout << "可用指令格式 (不區分大小寫): " << endl;
-    cout << "  BTC=100   (設定比特幣)" << endl;
-    cout << "  BTC+100   (增加比特幣)" << endl;
-    cout << "  ATK=50    (設定攻擊力)" << endl;
-    cout << "  RAM=32    (設定當前RAM)" << endl;
-    cout << "  HPmax=500 (設定最大生命)" << endl;
-    cout << "  HP=100    (設定當前生命)" << endl;
-    cout << "  Lv=2      (切換關卡層級 1-5)" << endl;
-    cout << "  EP=100    (設定探索度 0-100)" << endl; 
-    cout << "  exit      (退出上帝模式)" << endl;
-    cout << "----------------------------------------" << endl;
-
-    cin.ignore(); 
-    while (true) {
-        cout << "\033[1;31mGOD_SHELL >> \033[1;32m";
-        string input;
-        getline(cin, input);
-
-        if (input == "exit") break;
-        if (input.empty()) continue;
-
-        string varName = "";
-        char op = ' ';
-        string valStr = "";
-        bool parsingVar = true;
-
-        for (char c : input) {
-            if (parsingVar) {
-                if (c == '=' || c == '+' || c == '-') {
-                    op = c;
-                    parsingVar = false;
-                } else {
-                    varName += c;
-                }
-            } else {
-                valStr += c;
-            }
-        }
-
-        if (op == ' ' || valStr == "") {
-            cout << ">> 格式錯誤。範例: BTC=100" << endl;
-            continue;
-        }
-
-        try {
-            double val = stod(valStr);
-            
-            if (varName == "BTC") {
-                if (op == '=') p->setBTC(val);
-                else if (op == '+') p->addBTC(val);
-                else if (op == '-') p->addBTC(-val);
-                cout << ">> BTC Updated: " << p->getBTC() << endl;
-            }
-            else if (varName == "ATK") {
-                if (op == '=') p->setAtk((int)val);
-                else if (op == '+') p->setAtk(p->getAtk() + (int)val);
-                else if (op == '-') p->setAtk(p->getAtk() - (int)val);
-                cout << ">> ATK Updated: " << p->getAtk() << endl;
-            }
-            else if (varName == "RAM") {
-                if (op == '=') p->setRam((int)val);
-                else if (op == '+') p->setRam(p->getRam() + (int)val);
-                else if (op == '-') p->setRam(p->getRam() - (int)val);
-                cout << ">> RAM Updated: " << p->getRam() << endl;
-            }
-            else if (varName == "HPmax") {
-                if (op == '=') p->setMaxHp((int)val);
-                else if (op == '+') p->setMaxHp(p->getMaxHp() + (int)val);
-                else if (op == '-') p->setMaxHp(p->getMaxHp() - (int)val);
-                cout << ">> MaxHP Updated: " << p->getMaxHp() << endl;
-            }
-            else if (varName == "HP") {
-                if (op == '=') p->setHp((int)val);
-                else if (op == '+') p->setHp(p->getHp() + (int)val);
-                else if (op == '-') p->setHp(p->getHp() - (int)val);
-                cout << ">> HP Updated: " << p->getHp() << endl;
-            }
-            else if (varName == "Lv") {
-                if (op == '=') {
-                    int lvl = (int)val;
-                    if (lvl >= 1 && lvl <= 5) {
-                        currentLevel = lvl;
-                        explorationProgress = 0; 
-                        cout << ">> Level Switched to: " << currentLevel << " (Exploration Reset to 0%)" << endl;
-                    } else {
-                        cout << ">> Error: Lv range is 1-5" << endl;
-                    }
-                } else {
-                    cout << ">> Error: Lv only supports '='" << endl;
-                }
-            }
-            else if (varName == "EP") {
-                if (op == '=') explorationProgress = (int)val;
-                else if (op == '+') explorationProgress += (int)val;
-                else if (op == '-') explorationProgress -= (int)val;
-                
-                if (explorationProgress > 100) explorationProgress = 100;
-                if (explorationProgress < 0) explorationProgress = 0;
-                
-                cout << ">> Exploration Progress Updated: " << explorationProgress << "%" << endl;
-            }
-            else {
-                cout << ">> Unknown Variable: " << varName << endl;
-            }
-
-        } catch (...) {
-            cout << ">> 數值解析錯誤。" << endl;
-        }
-    }
-    cout << ">> Exiting God Mode..." << endl;
-    Sleep(1000);
-}
-
 // 技能與狀態管理介面
 void managePlayerStatus(Player* p) {
     while(true) {
@@ -267,20 +148,7 @@ void managePlayerStatus(Player* p) {
         cout << "0. 返回遊戲" << endl;
         cout << "指令: ";
         
-        string input;
-        cin >> input;
-
-        if (input == "lucyismywife") {
-            godMode(p);
-            continue; 
-        }
-
-        int choice = -1;
-        try {
-            choice = stoi(input);
-        } catch(...) {
-            choice = -1;
-        }
+        int choice = getSafeInput(0, 2);
         
         if (choice == 0) return;
         
@@ -301,10 +169,6 @@ void managePlayerStatus(Player* p) {
         }
         else if (choice == 2) {
             p->useInventoryItem(); 
-            system("pause");
-        }
-        else if (choice < 0 || choice > 2) {
-            cout << ">> 輸入無效，請輸入 0 到 2。" << endl;
             system("pause");
         }
     }
