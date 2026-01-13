@@ -20,7 +20,7 @@ struct Skill {
     int currentCd; // 當前 CD
     double dmgMult; // 傷害倍率
     int type;      // 1=攻擊, 2=吸血攻擊, 3=防禦/Buff
-    bool isLocked; // 新增：是否被封鎖
+    bool isLocked; // 是否被封鎖
 };
 
 class Player : public CyberUnit {
@@ -46,7 +46,7 @@ private:
     double atkUpgradeCost;
     double hpUpgradeCost;
 
-    // 舊有的高階被動道具紀錄
+    // 高階被動道具紀錄
     bool hasBoughtVirus;     
     bool hasBoughtBlackwall; 
 
@@ -88,15 +88,12 @@ public:
     
     int getTotalAtk() { return at + tempAtkBonus; }
 
-    // --- GOD MODE Setters (新增部分) ---
-    // 為了上帝模式，我們需要能夠直接設定這些私有變數
-    void setBTC(double val) { bitcoin = val; }
-    void setRam(int val) { ram = val; }
-    void setMaxRam(int val) { maxRam = val; }
+    // --- 外部狀態影響接口 (保留給敵方技能互動使用) ---
     
-    // 雖然這些變數在父類別是 protected，但我們可以透過這裡公開介面來修改
-    void setAtk(int val) { at = val; }
-    void setHp(int val) { hp = val; }
+    // 用於[舊時代的數據幽靈]的吸魔技能
+    void setRam(int val) { ram = val; }
+    
+    // 用於[黑牆閘門]戰鬥結束後的生命上限恢復
     void setMaxHp(int val) { maxHp = val; }
 
     // --- 技能學習與裝備 ---
@@ -154,7 +151,7 @@ public:
         // 檢查是否被封鎖
         if (sk.isLocked) {
             cout << ">> [Error] 技能已被網監程式封鎖！無法存取！" << endl;
-            return -3; // 新增錯誤碼：被封鎖
+            return -3; // 錯誤碼：被封鎖
         }
 
         if (sk.currentCd > 0) return -2; 
@@ -240,8 +237,7 @@ public:
     void lockRandomSkill() {
         if (equippedIndices.empty()) return;
         int targetSlot = rand() % 3; // 隨機封鎖 1~3 槽
-        // 確保該槽位有裝備技能 (equippedIndices 大小是 3，但內容是 index，如果沒裝備預設是指向 skill[0])
-        // 這裡簡化處理：直接標記該技能被鎖
+        // 確保該槽位有裝備技能
         Skill& sk = knownSkills[equippedIndices[targetSlot]];
         sk.isLocked = true;
         cout << "\033[1;31m>> [警告] 網監程式入侵！技能 [" << sk.name << "] 已被強制封鎖！\033[1;32m" << endl;
@@ -252,7 +248,6 @@ public:
         maxHp -= amount;
         if (maxHp < 1) maxHp = 1;
         if (hp > maxHp) hp = maxHp;
-        // 修改了這裡的文字，將永久改為暫時
         cout << "\033[1;35m>> [黑牆侵蝕] 生命上限受到干擾暫時降低 " << amount << " 點！ (當前上限: " << maxHp << ")\033[1;32m" << endl;
     }
 
